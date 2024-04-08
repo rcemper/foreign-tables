@@ -1,0 +1,43 @@
+ROUTINE DemoF
+DemoF ; show foreign table
+	write !,"First we need to define a FOREIGN SERVER",!
+	&SQl(DROP FOREIGN SERVER AF.csv)
+	set sql=2
+	set sql(1)="CREATE FOREIGN SERVER AF.csv TYPE 'FILE' "
+	set sql(2)="FOREIGN DATA WRAPPER CSV HOST '/home/irisowner/dev/' "
+	zwrite sql
+	do sql
+tab	
+	write !,"Next we need to define our FOREIGN TABLE",!
+	&SQL(DROP FOREIGN TABLE AF.country)
+	kill sql
+	set sql=9
+	set sql(1) ="CREATE FOREIGN TABLE  AF.country ( "
+    set sql(2) ="Country VARCHAR(100), "
+    set sql(3) ="Region VARCHAR(100), "
+    set sql(4) ="Population INT, "
+    set sql(5) ="Area VARCHAR(100), "
+    set sql(6) ="Coastline DEC(5,2)  )"
+    set sql(7) ="SERVER AF.csv "
+    set sql(8) ="FILE 'countries.csv' "
+    set sql(9) ="USING { ""from"": { ""file"": { ""header"": true } } }"
+   
+	zwrite sql
+	do sql
+qry
+	write !,"And how many rows do we see ?",!
+	kill sql
+	set sql="SELECT COUNT(*) ""_"" FROM AF.country"
+	zwrite sql
+	do sql
+	write !,"continue in SMP ",
+		  !,"<http://localhost:42773/csp/sys/exp/%25CSP.UI.Portal.SQL.Home.zen?$NAMESPACE=USER> ",
+		  !,"or in Terminal with SqlShell :sql",!
+	qui
+	
+sql
+	set rs=##class(%SQL.Statement).%ExecDirect(.tStmt,.sql)
+	if rs.%SQLCODE,rs.%SQLCODE+201 break
+	do rs.%Display()
+	write !
+	quit
